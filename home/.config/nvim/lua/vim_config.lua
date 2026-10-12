@@ -10,4 +10,7 @@ o.clipboard = 'unnamedplus'    -- share the system clipboard
 o.scrolloff = 16               -- keep cursor away from the screen edge
 o.undofile = true              -- persistent undo across sessions
 o.mouse = ''                   -- no mouse in nvim; also lets Herdr keep host mouse capture off so Escape isn't swallowed
-
+if jit.os == 'Windows' then
+  o.mouse = 'a'
+  o.mousemodel = 'popup_setpos'
+end
