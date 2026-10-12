@@ -26,8 +26,10 @@ for _, triple in ipairs({
     if triple:find("windows", 1, true) then
         assert(type(config.default_prog) == "table", "Windows must select PowerShell")
         assert(#config.default_prog == 2, "Windows must keep profile loading enabled")
-        assert(config.default_prog[1] == "powershell.exe", "Windows must launch Windows PowerShell")
+        assert(config.default_prog[1] == "pwsh.exe", "Windows must launch PowerShell 7")
         assert(config.default_prog[2] == "-NoLogo", "Windows must suppress the startup logo")
+        assert(config.default_cwd == "C:\\Git", "Windows must retain its default working directory")
+        assert(type(config.keys) == "table" and #config.keys == 4, "Windows must retain its custom keybindings")
     else
         assert(config.default_prog == nil, "Other platforms must retain their default shell")
     end
