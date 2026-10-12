@@ -77,6 +77,81 @@ nix build .#darwinConfigurations.mac.system --dry-run
 
 If you renamed the host label in "Make it yours", substitute your label for `mac` in these commands.
 
+## Windows setup (WezTerm, Starship, and Neovim)
+
+Windows uses the shared application configs directly, not the macOS Nix setup.
+Do not run `bootstrap.sh` or `rebuild.sh` on Windows.
+The examples below assume this repo is at `C:\Git\dotfiles`; adjust that path if needed.
+
+### Prerequisites
+
+Install WezTerm, Starship, a current stable Neovim (0.10 or newer), Git, ripgrep, and fd.
+Git is needed for plugin installation, ripgrep for text search, and fd for file picking.
+Make sure `starship`, `nvim`, `git`, `rg`, and `fd` are available on your shell's `PATH`.
+Install **Hack Nerd Font** from [Nerd Fonts](https://www.nerdfonts.com/font-downloads) so WezTerm can use the configured font and display prompt and plugin icons.
+
+### WezTerm
+
+Keep this bootstrap in `$HOME\.wezterm.lua`:
+
+```lua
+return dofile("C:/Git/dotfiles/home/.config/wezterm/wezterm.lua")
+```
+
+### Neovim
+
+Back up any existing Neovim configuration before replacing its entry point.
+For the default Windows configuration location, put this in `$env:LOCALAPPDATA\nvim\init.lua`
+(create the `nvim` directory if it does not exist):
+
+```lua
+dofile("C:/Git/dotfiles/home/.config/nvim/init.lua")
+```
+
+The repository's entry point adds its own directory to Neovim's runtime path before loading modules.
+Its three `require` calls intentionally load settings, plugins, and keybindings from `lua/`, including every plugin specification in `lua/plugins/`.
+Keep that directory tree intact; do not replace it with a generated standalone configuration.
+This bootstrap does not require a directory junction or administrator access.
+If you use `NVIM_APPNAME` or `XDG_CONFIG_HOME`, use that application's actual configuration location instead.
+
+### Starship in PowerShell
+
+Open the PowerShell edition you intend to run inside WezTerm.
+Windows PowerShell and PowerShell 7 have separate profiles.
+If necessary, select your shell using WezTerm's launch menu; initializing PowerShell does not configure a Command Prompt session.
+
+Create the parent directory and profile if they do not already exist:
+
+```powershell
+New-Item -ItemType Directory -Force -Path (Split-Path -Parent $PROFILE) | Out-Null
+if (-not (Test-Path -LiteralPath $PROFILE)) {
+    New-Item -ItemType File -Path $PROFILE | Out-Null
+}
+notepad $PROFILE
+```
+
+Add this line to the profile, preserving any unrelated existing settings:
+
+```powershell
+. "C:\Git\dotfiles\home\.config\powershell\profile.ps1"
+```
+
+The shared profile sets `STARSHIP_CONFIG` relative to its own location and initializes Starship's PowerShell prompt.
+`$HOME\.starship_profile.ps1` is not loaded automatically, and setting `STARSHIP_CONFIG` alone does not activate the prompt.
+Replace any older Starship initialization in your profile rather than initializing it twice.
+If script loading is blocked, check `Get-ExecutionPolicy -List` and follow your machine's policy; do not bypass organization restrictions.
+
+### Verify
+
+Restart WezTerm and open your chosen PowerShell edition without `-NoProfile`.
+Check `$env:STARSHIP_CONFIG` points to this repo's `starship.toml` and `Test-Path $env:STARSHIP_CONFIG` returns `True`.
+The prompt should show the configured directory and arrow, plus Git information inside a repository.
+
+Launch `nvim` with network access for the first plugin installation.
+Confirm there is no `module 'vim_config' not found` error and the Rose Pine Moon theme loads.
+Use `:Lazy` to check plugin installation, `:checkhealth` to diagnose missing tools,
+and Space followed by `e`, `f`, or `s` for the file browser, file picker, or text search.
+
 ## Daily use
 
 Edit the config files in place, then apply:
