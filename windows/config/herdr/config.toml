@@ -1,3 +1,4 @@
+onboarding = false
 [keys]
 prefix = "ctrl+b"
 focus_pane_left  = "prefix+h"
@@ -18,3 +19,10 @@ agent_panel_sort = "spaces"
 
 [terminal]
 default_shell = "pwsh.exe"
+
+[theme]
+name = "catppuccin"
+auto_switch = false
+
+[ui.toast]
+delivery = "herdr"
