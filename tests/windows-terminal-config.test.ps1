@@ -7,15 +7,15 @@ $ErrorActionPreference = 'Stop'
 
 $tempRoot = Join-Path ([IO.Path]::GetTempPath()) ("dotfiles profile test " + [guid]::NewGuid())
 $cloneRoot = Join-Path $tempRoot 'clone with spaces'
-$profileDirectory = Join-Path $cloneRoot 'home/.config/powershell'
-$starshipPath = Join-Path $cloneRoot 'home/.config/starship/starship.toml'
+$profileDirectory = Join-Path $cloneRoot 'windows/config/powershell'
+$starshipPath = Join-Path $cloneRoot 'shared/config/starship/starship.toml'
 $previousStarshipConfig = $env:STARSHIP_CONFIG
 
 try {
     New-Item -ItemType Directory -Force -Path $profileDirectory | Out-Null
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $starshipPath) | Out-Null
     Set-Content -LiteralPath $starshipPath -Value '[character]' -NoNewline
-    Copy-Item -LiteralPath (Join-Path $RepositoryRoot 'home/.config/powershell/profile.ps1') `
+    Copy-Item -LiteralPath (Join-Path $RepositoryRoot 'windows/config/powershell/profile.ps1') `
         -Destination $profileDirectory
 
     function starship {
@@ -29,19 +29,19 @@ try {
         throw 'The shared profile did not publish the normalized Starship config path.'
     }
 
-    $herdrConfig = Get-Content -LiteralPath (Join-Path $RepositoryRoot 'home/.config/herdr/config.toml') -Raw
+    $herdrConfig = Get-Content -LiteralPath (Join-Path $RepositoryRoot 'windows/config/herdr/config.toml') -Raw
     if ($herdrConfig -notmatch '(?m)^\[terminal\]\s*$' -or
         $herdrConfig -notmatch '(?m)^default_shell\s*=\s*"pwsh\.exe"\s*$' -or
         $herdrConfig -match '(?m)^\[shell\]\s*$') {
         throw 'Herdr must use the supported Windows [terminal] default_shell setting, not [shell].'
     }
 
-    $weztermConfig = Get-Content -LiteralPath (Join-Path $RepositoryRoot 'home/.config/wezterm/wezterm.lua') -Raw
+    $weztermConfig = Get-Content -LiteralPath (Join-Path $RepositoryRoot 'shared/config/wezterm/wezterm.lua') -Raw
     if ($weztermConfig -notmatch 'config\.default_prog\s*=\s*\{\s*"pwsh\.exe",\s*"-NoLogo"\s*\}') {
         throw 'WezTerm and Herdr must both explicitly default to PowerShell 7 on Windows.'
     }
 
-    $readme = Get-Content -LiteralPath (Join-Path $RepositoryRoot 'README.md') -Raw
+    $readme = Get-Content -LiteralPath (Join-Path $RepositoryRoot 'windows/README.md') -Raw
     foreach ($requiredText in @(
         '[Environment]::SetEnvironmentVariable(''HERDR_CONFIG_PATH''',
         '[Environment]::GetEnvironmentVariable(''HERDR_CONFIG_PATH'', ''User'')',

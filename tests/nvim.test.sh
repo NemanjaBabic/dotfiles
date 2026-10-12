@@ -10,7 +10,7 @@ command -v "$LUA_BIN" >/dev/null 2>&1 || fail "Lua runtime not found (set LUA_BI
 
 export DOTFILES_TEST_ROOT="$ROOT"
 "$LUA_BIN" -e "$(cat <<'LUA'
-local config_dir = os.getenv("DOTFILES_TEST_ROOT") .. "/home/.config/nvim"
+local config_dir = os.getenv("DOTFILES_TEST_ROOT") .. "/shared/config/nvim"
 local plugin_path = config_dir .. "/lua/plugin.lua"
 local lazypath = "/test/data/lazy/lazy.nvim"
 local exit_marker = {}
