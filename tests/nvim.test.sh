@@ -101,8 +101,15 @@ os.exit = original_exit
 
 local plugins = dofile(config_dir .. "/lua/plugins/git.lua")
 assert(plugins[1][1] == "NeogitOrg/neogit")
+assert(plugins[1].lazy == false, "Neogit must load on startup")
 assert(type(plugins[1].opts) == "table" and next(plugins[1].opts) == nil,
     "Neogit must explicitly enable setup with empty options")
+
+local navigation_plugins = dofile(config_dir .. "/lua/plugins/navigation.lua")
+assert(navigation_plugins[1][1] == "stevearc/oil.nvim")
+assert(navigation_plugins[1].lazy == false, "Oil must load on startup")
+assert(navigation_plugins[1].opts.view_options.show_hidden,
+    "Oil must continue showing hidden files")
 LUA
 )" || fail "Neovim plugin initialization and bootstrap"
 
