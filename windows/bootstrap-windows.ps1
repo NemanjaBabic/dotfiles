@@ -56,7 +56,7 @@ function Set-HerdrConfigPath {
     & $SetUserEnvironmentVariable 'HERDR_CONFIG_PATH' $configPath 'User'
     $env:HERDR_CONFIG_PATH = $configPath
 
-    Write-Output "HERDR_CONFIG_PATH set to $configPath for this user and PowerShell session."
+    Write-Host "HERDR_CONFIG_PATH set to $configPath for this user and PowerShell session."
     return $configPath
 }
 
@@ -185,7 +185,7 @@ function Set-PowerShellProfileBootstrap {
         }
 
         if ($existing -match '(?m)starship\s+init\s+powershell') {
-            Write-Warning "Found existing direct Starship initialization in $ProfilePath (`Invoke-Expression (& starship init powershell)`)."
+            Write-Warning "Found existing direct Starship initialization in $ProfilePath (``Invoke-Expression (& starship init powershell)``)."
             Write-Warning "Skipped modifying `$PROFILE to avoid duplicate prompt initialization."
             Write-Warning "Please manually remove the direct Starship initialization from $ProfilePath and replace it with:"
             Write-Warning "  $dotSourceLine"
