@@ -1,0 +1,32 @@
+# Don't show a new line at the start of the prompt
+add_newline = false
+
+# Format the prompt layout (Clean arrow style)
+format = """
+$directory\
+$git_branch\
+$git_status\
+$character"""
+
+# Customize the Directory text color
+[directory]
+style = "bold text cyan"
+truncate_to_repo = true
+truncation_length = 3
+
+# Customize the Git branch indicator
+[git_branch]
+symbol = " "
+style = "bold purple"
+format = "on [$symbol$branch]($style) "
+
+# Customize the Git status layout
+[git_status]
+style = "bold red"
+format = "[$all_status$ahead_behind]($style)"
+
+# The final prompt symbol text character
+[character]
+success_symbol = "[❯](bold green) "
+error_symbol = "[❯](bold red) "
+
