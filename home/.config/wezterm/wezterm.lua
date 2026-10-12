@@ -2,15 +2,22 @@ local wezterm = require("wezterm")
 
 local config = wezterm.config_builder()
 
+
+-- Set PowerShell as the default shell for Windows
 if wezterm.target_triple:find("windows", 1, true) then
 	config.default_prog = { "powershell.exe", "-NoLogo" }
 end
 
+-- Visual Themes and styling
 config.color_scheme = "rose-pine-moon"
 config.font = wezterm.font("Hack Nerd Font")
-config.font_size = 15.0
-config.window_background_opacity = 0.8
-config.macos_window_background_blur = 50
+config.font_size = 14.0
+
+-- Windows Alpha Transparency Setup
+config.window_background_opacity = 0.7
+config.win32_system_backdrop = "Disable"
+
+-- Layout tweaks
 config.hide_tab_bar_if_only_one_tab = true
 config.window_decorations = "RESIZE"
 
@@ -47,5 +54,14 @@ wezterm.on("window-focus-changed", function(window)
 	overrides.window_background_opacity = opacity
 	window:set_config_overrides(overrides)
 end)
+
+-- Custom Mouse Bindings for Window Panning
+config.mouse_bindings = {
+  {
+    event = { Down = { streak = 1, button = "Left" } },
+    mods = "ALT", -- This is your working, conflict-free hotkey!
+    action = wezterm.action.StartWindowDrag,
+  },
+}
 
 return config
