@@ -10,7 +10,7 @@ command -v "$LUA_BIN" >/dev/null 2>&1 || fail "Lua runtime not found (set LUA_BI
 
 export DOTFILES_TEST_ROOT="$ROOT"
 "$LUA_BIN" -e "$(cat <<'LUA'
-local config_path = os.getenv("DOTFILES_TEST_ROOT") .. "/home/.config/wezterm/wezterm.lua"
+local config_path = os.getenv("DOTFILES_TEST_ROOT") .. "/shared/config/wezterm/wezterm.lua"
 for _, triple in ipairs({
     "x86_64-pc-windows-msvc",
     "aarch64-apple-darwin",
@@ -21,6 +21,7 @@ for _, triple in ipairs({
         config_builder = function() return {} end,
         font = function(name) return name end,
         on = function() end,
+        action = setmetatable({}, { __index = function(_, k) return function(...) return k end end }),
     }
     local config = dofile(config_path)
     if triple:find("windows", 1, true) then
