@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
-    Bootstraps dotfiles configuration on Windows.
+    Bootstraps dotfiles configuration on a fresh Windows machine.
 
 .DESCRIPTION
-    Automates Windows configuration for WezTerm, Neovim, PowerShell, and Herdr:
+    Configures WezTerm, Neovim, PowerShell, and Herdr after installing the prerequisite tools:
     1. Sets up $HOME\.wezterm.lua to load the shared WezTerm configuration via dofile.
     2. Sets up $env:LOCALAPPDATA\nvim\init.lua to load the shared Neovim configuration via dofile.
     3. Configures $PROFILE to dot-source windows\config\powershell\profile.ps1.

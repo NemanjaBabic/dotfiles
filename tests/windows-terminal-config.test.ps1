@@ -50,10 +50,21 @@ try {
         'Get-Content -LiteralPath $PROFILE',
         'Get-Command starship',
         'herdr server reload-config',
-        'macOS Home Manager setup also links this shared config'
+        'macOS uses `unix/config/herdr/config.toml`',
+        'fresh Windows machine using default settings',
+        'bootstrap script configures them but does not install them',
+        'git clone https://github.com/NemanjaBabic/dotfiles.git',
+        'Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned'
     )) {
         if (-not $readme.Contains($requiredText)) {
             throw "The Windows README is missing required setup or verification text: $requiredText"
+        }
+    }
+
+    foreach ($readmePath in @('README.md', 'windows/README.md', 'unix/README.md', 'shared/README.md')) {
+        $documentation = Get-Content -LiteralPath (Join-Path $RepositoryRoot $readmePath) -Raw
+        if ($documentation -match 'previous layout|old layout|home/|migrat') {
+            throw "The setup documentation still references the obsolete layout: $readmePath"
         }
     }
 

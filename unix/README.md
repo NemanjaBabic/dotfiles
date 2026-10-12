@@ -3,23 +3,6 @@
 My personal Mac setup, managed with [nix-darwin](https://github.com/nix-darwin/nix-darwin) and [home-manager](https://github.com/nix-community/home-manager).
 One repo, one command, and a fresh Mac ends up configured the same way every time.
 
-## Migrating an existing machine (Upgrading from the old layout)
-
-> [!WARNING]
-> **Breaking changes for existing machines:**
-> This repository restructured its layout to separate macOS/Unix files (`unix/`), Windows files (`windows/`), and shared application configs (`shared/`).
-> Previously, configurations lived under `home/` (e.g. `home/.config/wezterm`, `home/.config/nvim`, `home/.config/herdr`, `home/.pi/agent`).
-> 
-> If you already configured a Mac using the previous layout, your existing symlinks point to `~/.dotfiles/home/...` which no longer exists.
-> To update all symlinks and configuration references to their new locations:
-> 
-> ```sh
-> git pull
-> ./unix/rebuild.sh
-> ```
-> 
-> Running `./unix/rebuild.sh` updates the `~/.dotfiles` symlink to the repository root and applies `unix/home.nix`, which updates all `mkOutOfStoreSymlink` targets to point to `shared/` and `unix/`.
-
 ## What you get
 
 Running the switch builds:
