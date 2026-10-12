@@ -31,6 +31,14 @@ Set-Location "$HOME\dotfiles"
 
 The configs load files directly from this clone, so keep it in place. In the manual steps below, `<repo-root>` means this clone's absolute path.
 
+The tracked WezTerm config starts Windows tabs, windows, and splits in `C:\Git`. Create that directory before launching WezTerm:
+
+```powershell
+New-Item -ItemType Directory -Force -Path 'C:\Git' | Out-Null
+```
+
+If you cannot create that directory or prefer another location, change `git_dir` in `shared/config/wezterm/wezterm.lua` to an existing directory first.
+
 Default Windows execution policy can block the bootstrap and startup profile. Inspect it from PowerShell 7:
 
 ```powershell

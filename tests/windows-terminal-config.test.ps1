@@ -54,6 +54,7 @@ try {
         'fresh Windows machine using default settings',
         'bootstrap script configures them but does not install them',
         'git clone https://github.com/NemanjaBabic/dotfiles.git',
+        'New-Item -ItemType Directory -Force -Path ''C:\Git''',
         'Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned'
     )) {
         if (-not $readme.Contains($requiredText)) {
