@@ -77,7 +77,7 @@ nix build .#darwinConfigurations.mac.system --dry-run
 
 If you renamed the host label in "Make it yours", substitute your label for `mac` in these commands.
 
-## Windows setup (WezTerm, Starship, and Neovim)
+## Windows setup (WezTerm, Starship, Neovim, and Herdr)
 
 Windows uses the shared application configs directly, not the macOS Nix setup.
 Do not run `bootstrap.sh` or `rebuild.sh` on Windows.
@@ -89,6 +89,8 @@ Install WezTerm, Starship, a current stable Neovim (0.10 or newer), Git, ripgrep
 Git is needed for plugin installation, ripgrep for text search, and fd for file picking.
 Make sure `starship`, `nvim`, `git`, `rg`, and `fd` are available on your shell's `PATH`.
 Install **Hack Nerd Font** from [Nerd Fonts](https://www.nerdfonts.com/font-downloads) so WezTerm can use the configured font and display prompt and plugin icons.
+The Herdr bootstrap below only configures its path; it does not require Herdr to be installed.
+To use Herdr, install it using the [official installation instructions](https://herdr.dev/docs/install/).
 
 ### WezTerm
 
@@ -152,6 +154,41 @@ Get-ExecutionPolicy -List
 ```
 
 Follow your machine's policy; do not bypass organization restrictions.
+
+### Herdr
+
+The bootstrap points Herdr directly at the tracked config in this clone; Git remains the
+single source of truth, with no AppData copy or TOML include. From PowerShell, run:
+
+```powershell
+& "C:\Git\dotfiles\bootstrap-herdr.ps1"
+```
+
+Replace the example clone path if needed. The script resolves `home\.config\herdr\config.toml`
+relative to its own location, so clones in other directories (including paths with spaces)
+work; moving the clone requires running the bootstrap again.
+
+Running it with `&` sets `HERDR_CONFIG_PATH` for the current PowerShell session as well as
+the Windows User environment for future processes. Running it in an isolated
+`powershell -File` process can persist the User value, but cannot update the parent
+PowerShell process. Existing terminals and Herdr processes must be restarted to inherit
+the new environment value.
+
+Verify the selected path and ask Herdr to show its resolved config path:
+
+```powershell
+$env:HERDR_CONFIG_PATH
+Test-Path -LiteralPath $env:HERDR_CONFIG_PATH
+herdr --help
+```
+
+Herdr may write changes to the selected config, including `onboarding = false` after
+onboarding and changes made through settings. Because this file is in the repository,
+review `git diff` before committing; do not assume it is read-only.
+
+On Windows, Herdr prefers `pwsh.exe` on `PATH`, then falls back to `powershell.exe`.
+Initialize Starship in the profile for the shell Herdr actually launches; do not hardcode
+a shell in the shared cross-platform Herdr TOML.
 
 ### Verify
 
