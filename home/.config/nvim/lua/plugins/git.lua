@@ -2,6 +2,7 @@ return {
   {
     'NeogitOrg/neogit',
     dependencies = { 'nvim-lua/plenary.nvim', 'sindrets/diffview.nvim' },
+    opts = {},
     keys = { { '<leader>g', function() require('neogit').open() end, desc = 'Neogit' } },
   },
   {
@@ -10,4 +11,3 @@ return {
     opts = { current_line_blame = true },  -- who last touched this line
   },
 }
-
