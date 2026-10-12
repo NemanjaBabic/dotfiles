@@ -98,6 +98,9 @@ Keep this bootstrap in `$HOME\.wezterm.lua`:
 return dofile("C:/Git/dotfiles/home/.config/wezterm/wezterm.lua")
 ```
 
+The shared config launches Windows PowerShell (`powershell.exe -NoLogo`) by default on Windows, with profile loading enabled.
+Other platforms keep their default shell.
+
 ### Neovim
 
 Back up any existing Neovim configuration before replacing its entry point.
@@ -117,8 +120,10 @@ If you use `NVIM_APPNAME` or `XDG_CONFIG_HOME`, use that application's actual co
 ### Starship in PowerShell
 
 Open the PowerShell edition you intend to run inside WezTerm.
-Windows PowerShell and PowerShell 7 have separate profiles.
-If necessary, select your shell using WezTerm's launch menu; initializing PowerShell does not configure a Command Prompt session.
+By default, this is Windows PowerShell (`powershell.exe`), not PowerShell 7 (`pwsh.exe`).
+Windows PowerShell and PowerShell 7 have separate profiles; run `$PROFILE` in that same shell to find the actual startup file to edit.
+If you select PowerShell 7 using WezTerm's launch menu, repeat the profile setup in that edition.
+Initializing PowerShell does not configure a Command Prompt session.
 
 Create the parent directory and profile if they do not already exist:
 
@@ -130,22 +135,44 @@ if (-not (Test-Path -LiteralPath $PROFILE)) {
 notepad $PROFILE
 ```
 
-Add this line to the profile, preserving any unrelated existing settings:
+Add this line to that shell's actual `$PROFILE`, preserving any unrelated existing settings:
 
 ```powershell
 . "C:\Git\dotfiles\home\.config\powershell\profile.ps1"
 ```
 
 The shared profile sets `STARSHIP_CONFIG` relative to its own location and initializes Starship's PowerShell prompt.
+PowerShell automatically loads `$PROFILE` on startup; the repository's profile is only loaded through the dot-source line above.
 `$HOME\.starship_profile.ps1` is not loaded automatically, and setting `STARSHIP_CONFIG` alone does not activate the prompt.
 Replace any older Starship initialization in your profile rather than initializing it twice.
-If script loading is blocked, check `Get-ExecutionPolicy -List` and follow your machine's policy; do not bypass organization restrictions.
+If startup reports that scripts cannot be loaded, run this in the affected shell to inspect execution policies by scope:
+
+```powershell
+Get-ExecutionPolicy -List
+```
+
+Follow your machine's policy; do not bypass organization restrictions.
 
 ### Verify
 
-Restart WezTerm and open your chosen PowerShell edition without `-NoProfile`.
-Check `$env:STARSHIP_CONFIG` points to this repo's `starship.toml` and `Test-Path $env:STARSHIP_CONFIG` returns `True`.
-The prompt should show the configured directory and arrow, plus Git information inside a repository.
+Fully restart WezTerm and check these in its new default tab (or your chosen PowerShell edition), without manually sourcing the shared profile:
+
+```powershell
+$PSVersionTable.PSVersion
+$PROFILE
+$env:STARSHIP_CONFIG
+Test-Path -LiteralPath $env:STARSHIP_CONFIG
+Get-Command ls, clear, starship
+ls
+clear
+```
+
+`$PSVersionTable` should identify PowerShell. `STARSHIP_CONFIG` should point to this repo's `home\.config\starship\starship.toml`,
+and `Test-Path` should return `True`, confirming the profile ran at startup.
+`Get-Command` should show `ls` and `clear` as aliases for `Get-ChildItem` and `Clear-Host`, and find the Starship executable.
+`ls` should list files and `clear` should clear the terminal.
+The prompt should show the configured directory and arrow, plus Git information inside a repository; finding `starship` alone does not confirm prompt initialization.
+If these checks fail, check startup errors, the dot-source line in the displayed `$PROFILE`, and the execution policies above.
 
 Launch `nvim` with network access for the first plugin installation.
 Confirm there is no `module 'vim_config' not found` error and the Rose Pine Moon theme loads.

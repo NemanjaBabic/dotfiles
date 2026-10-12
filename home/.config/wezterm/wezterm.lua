@@ -2,6 +2,10 @@ local wezterm = require("wezterm")
 
 local config = wezterm.config_builder()
 
+if wezterm.target_triple:find("windows", 1, true) then
+	config.default_prog = { "powershell.exe", "-NoLogo" }
+end
+
 config.color_scheme = "rose-pine-moon"
 config.font = wezterm.font("Hack Nerd Font")
 config.font_size = 15.0
