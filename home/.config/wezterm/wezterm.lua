@@ -14,7 +14,7 @@ local is_windows = wezterm.target_triple:find("windows", 1, true) ~= nil
 local git_dir = "C:\\Git"
 
 if is_windows then
-	config.default_prog = { "powershell.exe", "-NoLogo" }
+	config.default_prog = { "pwsh.exe", "-NoLogo" }
 	config.default_cwd = git_dir
 
 	config.keys = {

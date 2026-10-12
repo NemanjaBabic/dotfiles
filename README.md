@@ -100,7 +100,7 @@ Keep this bootstrap in `$HOME\.wezterm.lua`:
 return dofile("C:/Git/dotfiles/home/.config/wezterm/wezterm.lua")
 ```
 
-The shared config launches Windows PowerShell (`powershell.exe -NoLogo`) by default on Windows, with profile loading enabled.
+The shared config launches PowerShell 7 (`pwsh.exe -NoLogo`) by default on Windows, with profile loading enabled.
 Other platforms keep their default shell.
 
 ### Neovim
@@ -121,10 +121,12 @@ If you use `NVIM_APPNAME` or `XDG_CONFIG_HOME`, use that application's actual co
 
 ### Starship in PowerShell
 
-Open the PowerShell edition you intend to run inside WezTerm.
-By default, this is Windows PowerShell (`powershell.exe`), not PowerShell 7 (`pwsh.exe`).
-Windows PowerShell and PowerShell 7 have separate profiles; run `$PROFILE` in that same shell to find the actual startup file to edit.
-If you select PowerShell 7 using WezTerm's launch menu, repeat the profile setup in that edition.
+Configure the profile for the PowerShell edition actually launched by your terminal.
+With the repository defaults, both WezTerm and Herdr use PowerShell 7 (`pwsh.exe`), so
+configure the PowerShell 7 profile. Windows PowerShell (`powershell.exe`) and PowerShell 7
+have separate profiles; run `$PROFILE` in the shell to find the actual startup file to edit.
+If you intentionally switch either terminal to the other edition, configure that edition's
+profile too.
 Initializing PowerShell does not configure a Command Prompt session.
 
 Create the parent directory and profile if they do not already exist:
@@ -187,12 +189,14 @@ onboarding and changes made through settings. Because this file is in the reposi
 review `git diff` before committing; do not assume it is read-only.
 
 On Windows, Herdr prefers `pwsh.exe` on `PATH`, then falls back to `powershell.exe`.
-Initialize Starship in the profile for the shell Herdr actually launches; do not hardcode
-a shell in the shared cross-platform Herdr TOML.
+Initialize Starship in the profile for the shell Herdr actually launches. With the repo
+defaults that is PowerShell 7; do not hardcode a shell in the shared cross-platform
+Herdr TOML. If you intentionally switch Herdr to another shell edition, configure that
+edition's profile as well.
 
 ### Verify
 
-Fully restart WezTerm and check these in its new default tab (or your chosen PowerShell edition), without manually sourcing the shared profile:
+Fully restart WezTerm and check these in its new default tab (or the PowerShell edition you intentionally selected), without manually sourcing the shared profile:
 
 ```powershell
 $PSVersionTable.PSVersion
