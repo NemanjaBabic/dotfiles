@@ -41,14 +41,6 @@ dotfiles/
 - **Windows users**: Follow the **[Windows Setup Guide](windows/README.md)** to configure your environment automatically with `.\windows\bootstrap-windows.ps1`.
 - **Shared configuration details**: See **[Shared Configurations](shared/README.md)** for details on common configs and symlink setups.
 
-## Migrating from Previous Layout
-
-If you configured a machine using the previous repository layout where configs were stored in `home/`:
-- **macOS**: Re-run `./unix/rebuild.sh` to update Home Manager's out-of-store symlinks to point to `shared/` and `unix/`.
-- **Windows**: Run `.\windows\bootstrap-windows.ps1` to update `$HOME\.wezterm.lua`, `$env:LOCALAPPDATA\nvim\init.lua`, `$PROFILE`, and `HERDR_CONFIG_PATH`.
-
-Detailed migration instructions are provided in both **[`unix/README.md`](unix/README.md#migrating-an-existing-machine-upgrading-from-the-old-layout)** and **[`windows/README.md`](windows/README.md#migrating-an-existing-machine-upgrading-from-the-old-layout)**.
-
 ## License
 
 This repo is licensed under MIT No Attribution.

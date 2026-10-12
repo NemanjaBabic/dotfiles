@@ -19,6 +19,6 @@ Herdr's `[terminal]` section configures `default_shell`:
 - On Windows, it requires `default_shell = "pwsh.exe"`.
 - On macOS/Unix, `pwsh.exe` does not exist; `default_shell` is omitted so Herdr falls back to the user's login shell (`$SHELL`, typically `/bin/zsh`).
 
-Because Herdr's static TOML does not support OS conditionals, sharing a single file forced Windows-specific executable settings into the macOS environment. Therefore, Herdr's configuration is intentionally separated into:
+Because Herdr's static TOML does not support OS conditionals, each platform has its own configuration:
 - `unix/config/herdr/config.toml` (macOS/Unix)
 - `windows/config/herdr/config.toml` (Windows)
