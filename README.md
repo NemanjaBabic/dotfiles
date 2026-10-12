@@ -81,33 +81,42 @@ If you renamed the host label in "Make it yours", substitute your label for `mac
 
 Windows uses the shared application configs directly, not the macOS Nix setup.
 Do not run `bootstrap.sh` or `rebuild.sh` on Windows.
-The examples below assume this repo is at `C:\Git\dotfiles`; adjust that path if needed.
+The copy/paste examples below assume this repo is at `C:\Git\dotfiles`; replace that
+root with your clone's actual location everywhere it appears. Quoted literal paths
+support clone and profile locations containing spaces.
 
 ### Prerequisites
 
-Install WezTerm, Starship, a current stable Neovim (0.10 or newer), Git, ripgrep, and fd.
-Git is needed for plugin installation, ripgrep for text search, and fd for file picking.
-Make sure `starship`, `nvim`, `git`, `rg`, and `fd` are available on your shell's `PATH`.
+Install PowerShell 7, WezTerm, Herdr, Starship, a current stable Neovim (0.10 or newer),
+Git, ripgrep, and fd. Add `pwsh.exe`, `starship`, `nvim`, `git`, `rg`, and `fd` to
+`PATH`; Git is needed for plugin installation, ripgrep for text search, and fd for file
+picking. Herdr's explicit default below requires `pwsh.exe` on `PATH`.
 Install **Hack Nerd Font** from [Nerd Fonts](https://www.nerdfonts.com/font-downloads) so WezTerm can use the configured font and display prompt and plugin icons.
-The Herdr bootstrap below only configures its path; it does not require Herdr to be installed.
-To use Herdr, install it using the [official installation instructions](https://herdr.dev/docs/install/).
+Install Herdr using the [official installation instructions](https://herdr.dev/docs/install/).
+
+Confirm the executables are discoverable in PowerShell before configuring the terminals:
+
+```powershell
+Get-Command pwsh, starship, nvim, git, rg, fd
+```
 
 ### WezTerm
 
-Keep this bootstrap in `$HOME\.wezterm.lua`:
+Put this exact bootstrap in `$HOME\.wezterm.lua`:
 
 ```lua
 return dofile("C:/Git/dotfiles/home/.config/wezterm/wezterm.lua")
 ```
 
-The shared config launches PowerShell 7 (`pwsh.exe -NoLogo`) by default on Windows, with profile loading enabled.
-Other platforms keep their default shell.
+The tracked WezTerm config sets its Windows default command to `pwsh.exe -NoLogo`;
+because it does not use `-NoProfile`, PowerShell loads its normal startup profile. The
+default shell on other platforms is unchanged.
 
 ### Neovim
 
-Back up any existing Neovim configuration before replacing its entry point.
-For the default Windows configuration location, put this in `$env:LOCALAPPDATA\nvim\init.lua`
-(create the `nvim` directory if it does not exist):
+Back up any existing Neovim configuration before changing its entry point. For the
+default Windows location, create `$env:LOCALAPPDATA\nvim` if needed and put this in
+`$env:LOCALAPPDATA\nvim\init.lua`:
 
 ```lua
 dofile("C:/Git/dotfiles/home/.config/nvim/init.lua")
@@ -121,34 +130,49 @@ If you use `NVIM_APPNAME` or `XDG_CONFIG_HOME`, use that application's actual co
 
 ### Starship in PowerShell
 
-Configure the profile for the PowerShell edition actually launched by your terminal.
-With the repository defaults, both WezTerm and Herdr use PowerShell 7 (`pwsh.exe`), so
-configure the PowerShell 7 profile. Windows PowerShell (`powershell.exe`) and PowerShell 7
-have separate profiles; run `$PROFILE` in the shell to find the actual startup file to edit.
-If you intentionally switch either terminal to the other edition, configure that edition's
-profile too.
-Initializing PowerShell does not configure a Command Prompt session.
+Both tracked terminal defaults use PowerShell 7, so edit the profile shown by `$PROFILE`
+from a PowerShell 7 session. Windows PowerShell (`powershell.exe`) and PowerShell 7
+(`pwsh.exe`) have separate profiles. Do not guess the profile path: `$PROFILE` handles
+Documents redirection (including OneDrive) and spaces in the path.
 
-Create the parent directory and profile if they do not already exist:
+Back up an existing profile before editing, then create the parent directory and profile
+if needed and open the actual file:
 
 ```powershell
 New-Item -ItemType Directory -Force -Path (Split-Path -Parent $PROFILE) | Out-Null
+if (Test-Path -LiteralPath $PROFILE) {
+    Copy-Item -LiteralPath $PROFILE -Destination "$PROFILE.bak"
+}
 if (-not (Test-Path -LiteralPath $PROFILE)) {
     New-Item -ItemType File -Path $PROFILE | Out-Null
 }
 notepad $PROFILE
 ```
 
-Add this line to that shell's actual `$PROFILE`, preserving any unrelated existing settings:
+Preserve unrelated profile content. Add this dot-source line to `$PROFILE`:
 
 ```powershell
 . "C:\Git\dotfiles\home\.config\powershell\profile.ps1"
 ```
 
-The shared profile sets `STARSHIP_CONFIG` relative to its own location and initializes Starship's PowerShell prompt.
-PowerShell automatically loads `$PROFILE` on startup; the repository's profile is only loaded through the dot-source line above.
-`$HOME\.starship_profile.ps1` is not loaded automatically, and setting `STARSHIP_CONFIG` alone does not activate the prompt.
-Replace any older Starship initialization in your profile rather than initializing it twice.
+If `$PROFILE` already contains a direct Starship initialization such as
+`Invoke-Expression (& starship init powershell)`, remove or replace that old line; do not
+keep it alongside the shared profile or initialize Starship twice. The shared repository
+profile sets `STARSHIP_CONFIG` to the tracked `home\.config\starship\starship.toml` using
+a resolved, normalized path, then initializes the prompt. PowerShell loads `$PROFILE` on
+startup, and that dot-source line loads the repository profile. Setting `STARSHIP_CONFIG`
+by itself does not initialize the prompt; `$HOME\.starship_profile.ps1` is not loaded
+automatically.
+
+The environment variable is set by the shared repository profile every time that profile
+runs; do not set it as a separate persistent Windows environment variable. You can
+dot-source the shared profile once for immediate testing, but that does not replace the
+`$PROFILE` line or prove startup loading:
+
+```powershell
+. "C:\Git\dotfiles\home\.config\powershell\profile.ps1"
+```
+
 If startup reports that scripts cannot be loaded, run this in the affected shell to inspect execution policies by scope:
 
 ```powershell
@@ -159,61 +183,147 @@ Follow your machine's policy; do not bypass organization restrictions.
 
 ### Herdr
 
-The bootstrap points Herdr directly at the tracked config in this clone; Git remains the
-single source of truth, with no AppData copy or TOML include. From PowerShell, run:
+Herdr reads `C:\Git\dotfiles\home\.config\herdr\config.toml` directly from this clone;
+there is no AppData copy or TOML include.
+The config explicitly selects PowerShell 7 for new interactive panes:
+
+```toml
+[terminal]
+default_shell = "pwsh.exe"
+```
+
+This is a Windows-specific executable setting. Before using this shared config on macOS
+or Linux, remove or change `default_shell` to an executable valid on that platform. The
+macOS Home Manager setup also links this shared config, so the explicit Windows shell
+setting applies there until you adjust it.
+`default_shell` accepts the executable name or path, not a command plus arguments; do
+not add a `[shell]` table or `program`/`args` fields. Herdr's Windows fallback to
+`powershell.exe` applies only when no explicit default is configured; this config
+requires `pwsh.exe` to be installed and on `PATH`.
+
+The repeatable bootstrap validates that the tracked config exists, then sets
+`HERDR_CONFIG_PATH` both for the current PowerShell process and in the Windows User
+environment for future processes. Run it with the call operator `&` in the PowerShell
+session you intend to use:
 
 ```powershell
 & "C:\Git\dotfiles\bootstrap-herdr.ps1"
 ```
 
-Replace the example clone path if needed. The script resolves `home\.config\herdr\config.toml`
-relative to its own location, so clones in other directories (including paths with spaces)
-work; moving the clone requires running the bootstrap again.
+The script resolves `home\.config\herdr\config.toml` relative to its own location, so
+clones in other directories (including paths with spaces) work. It does not modify the
+config file.
 
-Running it with `&` sets `HERDR_CONFIG_PATH` for the current PowerShell session as well as
-the Windows User environment for future processes. Running it in an isolated
-`powershell -File` process can persist the User value, but cannot update the parent
-PowerShell process. Existing terminals and Herdr processes must be restarted to inherit
-the new environment value.
+Equivalent one-time manual setup, if you are not using the script: first validate the
+absolute config path, then resolve it and set both scopes. The `throw` prevents either
+environment value from changing when the file is missing:
 
-Verify the selected path and ask Herdr to show its resolved config path:
+```powershell
+$configPath = 'C:\Git\dotfiles\home\.config\herdr\config.toml'
+if (-not (Test-Path -LiteralPath $configPath -PathType Leaf)) {
+    throw "Herdr config file not found: $configPath"
+}
+$configPath = (Resolve-Path -LiteralPath $configPath -ErrorAction Stop).Path
+[Environment]::SetEnvironmentVariable('HERDR_CONFIG_PATH', $configPath, 'User')
+$env:HERDR_CONFIG_PATH = $configPath
+```
+
+Running the script with `&` updates the current session as well as the persistent User
+value. Running it via an isolated `pwsh -File` or `powershell -File` can set the User
+value, but cannot change the calling PowerShell process. New processes inherit the
+persistent value; already-running terminals and Herdr servers keep their old environment.
+After changing the path, restart/reopen Herdr so its server inherits the new value, then
+create a new pane. Existing panes keep their original shell and environment. For TOML
+changes after Herdr is running with the correct environment, run
+`herdr server reload-config` and create a new pane. Do not kill arbitrary processes or
+reset sessions. If you move the clone, rerun the bootstrap and update the clone paths in
+the WezTerm bootstrap and PowerShell profile.
+
+Check Herdr's config selection separately from its shell and profile:
 
 ```powershell
 $env:HERDR_CONFIG_PATH
+[Environment]::GetEnvironmentVariable('HERDR_CONFIG_PATH', 'User')
 Test-Path -LiteralPath $env:HERDR_CONFIG_PATH
+Get-Content -LiteralPath $env:HERDR_CONFIG_PATH
 herdr --help
 ```
 
-Herdr may write changes to the selected config, including `onboarding = false` after
-onboarding and changes made through settings. Because this file is in the repository,
-review `git diff` before committing; do not assume it is read-only.
+Both environment values should name this clone's `home\.config\herdr\config.toml`, the
+path test should return `True`, and the file should show the `[terminal]` setting above.
+Those checks prove which file exists and is selected; they do not prove which shell or
+PowerShell profile a pane is running. Herdr may write changes to the selected config,
+including onboarding or settings changes. Review `git diff` before keeping such changes;
+the bootstrap itself does not silently mutate the TOML.
 
-On Windows, Herdr prefers `pwsh.exe` on `PATH`, then falls back to `powershell.exe`.
-Initialize Starship in the profile for the shell Herdr actually launches. With the repo
-defaults that is PowerShell 7; do not hardcode a shell in the shared cross-platform
-Herdr TOML. If you intentionally switch Herdr to another shell edition, configure that
-edition's profile as well.
+If Herdr shows a yellow config warning, check the displayed warning and the TOML section:
+`[shell]` with `program`/`args` is unsupported; use `[terminal]` with `default_shell`.
+Do not rely on the fallback to `powershell.exe` while the explicit `pwsh.exe` setting is
+present.
 
-### Verify
+### Verify WezTerm's default
 
-Fully restart WezTerm and check these in its new default tab (or the PowerShell edition you intentionally selected), without manually sourcing the shared profile:
+Fully close and reopen WezTerm, then use a fresh **standalone WezTerm default tab**—not
+a Herdr pane and not a shell you launched manually—to prove its configured default.
+Run:
 
 ```powershell
 $PSVersionTable.PSVersion
+$((Get-Process -Id $PID).Path)
 $PROFILE
+Get-Content -LiteralPath $PROFILE
 $env:STARSHIP_CONFIG
 Test-Path -LiteralPath $env:STARSHIP_CONFIG
-Get-Command ls, clear, starship
+Get-Command starship
+Get-Command ls, clear
 ls
 clear
 ```
 
-`$PSVersionTable` should identify PowerShell. `STARSHIP_CONFIG` should point to this repo's `home\.config\starship\starship.toml`,
-and `Test-Path` should return `True`, confirming the profile ran at startup.
-`Get-Command` should show `ls` and `clear` as aliases for `Get-ChildItem` and `Clear-Host`, and find the Starship executable.
-`ls` should list files and `clear` should clear the terminal.
-The prompt should show the configured directory and arrow, plus Git information inside a repository; finding `starship` alone does not confirm prompt initialization.
-If these checks fail, check startup errors, the dot-source line in the displayed `$PROFILE`, and the execution policies above.
+Expect PowerShell 7.x, a process path ending in `pwsh.exe`, and `$PROFILE` to show the
+actual PowerShell 7 startup file (possibly under OneDrive-redirected Documents). Its
+contents should include the dot-source line to this clone's
+`home\.config\powershell\profile.ps1`. `STARSHIP_CONFIG` should be the normalized path to
+this clone's `home\.config\starship\starship.toml`, and `Test-Path` should return `True`.
+`Get-Command starship` should find the executable; `Get-Command` should show `ls` and
+`clear` as aliases for `Get-ChildItem` and `Clear-Host`. `ls` lists files and `clear`
+clears the terminal. The prompt should show the configured directory and arrow, plus
+Git information when the current directory is inside a Git repository.
+
+### Verify Herdr's default pane
+
+After Herdr has inherited the configured User environment, create a **fresh interactive
+Herdr pane**. Do not run `pwsh.exe` manually to test Herdr's default. Check both the
+selected config and the actual process/profile:
+
+```powershell
+$env:HERDR_CONFIG_PATH
+[Environment]::GetEnvironmentVariable('HERDR_CONFIG_PATH', 'User')
+Test-Path -LiteralPath $env:HERDR_CONFIG_PATH
+Get-Content -LiteralPath $env:HERDR_CONFIG_PATH
+$PSVersionTable.PSVersion
+(Get-Process -Id $PID).Path
+$PROFILE
+Get-Content -LiteralPath $PROFILE
+$env:STARSHIP_CONFIG
+Test-Path -LiteralPath $env:STARSHIP_CONFIG
+Get-Command starship
+Get-Command ls, clear
+```
+
+The selected and User config paths should point to this clone's Herdr TOML and its
+`Test-Path` should return `True`; inspect that TOML for `[terminal]` and
+`default_shell = "pwsh.exe"`. Independently, expect PowerShell 7.x, a process path
+ending in `pwsh.exe`, the actual `$PROFILE` dot-sourcing this clone's shared PowerShell
+profile, and a normalized `STARSHIP_CONFIG` path to the tracked Starship TOML with its
+path test returning `True`. The prompt should be visible and configured; Git details
+appear only inside a repository. A valid config path or inherited environment value
+alone does not prove the pane's shell, profile, or prompt initialization.
+
+If changing Herdr's TOML while its server is already running, `herdr server reload-config`
+reloads configuration; create a new pane to use the changed default. Existing panes
+retain their old shell. If the User environment path changed, restart Herdr itself first
+so its server receives that value.
 
 Launch `nvim` with network access for the first plugin installation.
 Confirm there is no `module 'vim_config' not found` error and the Rose Pine Moon theme loads.
