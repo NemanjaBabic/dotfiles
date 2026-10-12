@@ -1,5 +1,14 @@
 # global agent instructions
 
+## Optional Neovim rendering dependencies
+
+Neovim image rendering (ImageMagick: https://imagemagick.org/), PDF rendering
+(Ghostscript: https://www.ghostscript.com/), LaTeX math (Tectonic:
+https://tectonic-typesetting.github.io/ or pdflatex via MiKTeX), and Mermaid
+rendering (Mermaid CLI: https://github.com/mermaid-js/mermaid-cli) are optional.
+Install these separately on Windows only if you want those rendering features;
+the configuration does not enable Snacks.image by default.
+
 - Never use the em dash "—". Use plain dash "-" instead
 - When writing commit messages, NEVER auto-add your agent name as co-author
 - Never manually modify CHANGELOG.md files or any files that are marked as auto-generated

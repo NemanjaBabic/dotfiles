@@ -76,6 +76,7 @@ for _, scenario in ipairs({ "installed", "clone_success", "clone_failure" }) do
             assert(prepended, "Add lazy.nvim to runtimepath before setup")
             assert(spec == "plugins")
             assert(opts.lockfile == config_dir .. "/lazy-lock.json", "Use the repository lockfile")
+            assert(opts.rocks.enabled == false, "Disable unused LuaRocks support")
             assert(opts.performance.rtp.reset == false, "Preserve the dofile bootstrap runtimepath")
             configured = true
         end,
@@ -103,6 +104,44 @@ local plugins = dofile(config_dir .. "/lua/plugins/git.lua")
 assert(plugins[1][1] == "NeogitOrg/neogit")
 assert(type(plugins[1].opts) == "table" and next(plugins[1].opts) == nil,
     "Neogit must explicitly enable setup with empty options")
+
+local ui_plugins = dofile(config_dir .. "/lua/plugins/ui.lua")
+assert(ui_plugins[1][1] == "folke/which-key.nvim")
+assert(ui_plugins[1].dependencies[1][1] == "nvim-tree/nvim-web-devicons")
+assert(ui_plugins[1].dependencies[1].config == true)
+
+local navigation = dofile(config_dir .. "/lua/plugins/navigation.lua")
+assert(navigation[2].opts.image.enabled == false, "Keep optional image rendering disabled")
+
+local treesitter = dofile(config_dir .. "/lua/plugins/treesitter.lua")
+assert(treesitter[1][1] == "nvim-treesitter/nvim-treesitter")
+assert(treesitter[1].branch == "main" and treesitter[1].lazy == false)
+assert(treesitter[1].build == ":TSUpdate")
+local treesitter_options
+package.loaded["nvim-treesitter.configs"] = {
+    setup = function(opts)
+        treesitter_options = opts
+    end,
+}
+treesitter[1].config()
+assert(treesitter_options.ensure_installed[1] == "regex")
+assert(treesitter_options.auto_install == false)
+package.loaded["nvim-treesitter.configs"] = nil
+
+local original_vim, original_jit = vim, jit
+for _, platform in ipairs({ "Windows", "Linux" }) do
+    vim = { opt = {}, g = {} }
+    jit = { os = platform }
+    dofile(config_dir .. "/lua/vim_config.lua")
+    assert(vim.opt.mouse == (platform == "Windows" and "a" or ""))
+    assert((vim.opt.mousemodel == "popup_setpos") == (platform == "Windows"))
+    assert(vim.opt.clipboard == "unnamedplus", "Keep clipboard support enabled")
+    assert(vim.g.loaded_node_provider == 0)
+    assert(vim.g.loaded_perl_provider == 0)
+    assert(vim.g.loaded_python3_provider == 0)
+    assert(vim.g.loaded_ruby_provider == 0)
+end
+vim, jit = original_vim, original_jit
 LUA
 )" || fail "Neovim plugin initialization and bootstrap"
 

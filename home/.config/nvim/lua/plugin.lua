@@ -30,6 +30,7 @@ local config_dir = vim.fn.fnamemodify(
 
 require('lazy').setup('plugins', {
   lockfile = config_dir .. '/lazy-lock.json',
+  rocks = { enabled = false },
   performance = {
     rtp = {
       reset = false,

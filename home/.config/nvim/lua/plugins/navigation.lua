@@ -9,6 +9,7 @@ return {
     priority = 1000,
     lazy = false,
     opts = {
+      image = { enabled = false },
       picker = { enabled = true },
       notifier = { enabled = true },
       input = { enabled = true },
@@ -21,4 +22,3 @@ return {
     },
   },
 }
-
