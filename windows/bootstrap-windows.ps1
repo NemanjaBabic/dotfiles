@@ -3,12 +3,13 @@
     Bootstraps dotfiles configuration on a fresh Windows machine.
 
 .DESCRIPTION
-    Configures WezTerm, Neovim, PowerShell, and Herdr after installing the prerequisite tools:
+    Configures WezTerm, Neovim, PowerShell, Copilot CLI, and Herdr after installing the prerequisite tools:
     1. Sets up $HOME\.wezterm.lua to load the shared WezTerm configuration via dofile.
     2. Sets up $env:LOCALAPPDATA\nvim\init.lua to load the shared Neovim configuration via dofile.
     3. Configures $PROFILE to dot-source windows\config\powershell\profile.ps1.
-    4. Sets HERDR_CONFIG_PATH in both the current process and the Windows User environment scope.
-    5. Validates prerequisites (PowerShell 7, WezTerm, Herdr, Starship, Neovim, Git, ripgrep, fd, Hack Nerd Font).
+    4. Symlinks Copilot CLI settings and global instructions to the shared configuration.
+    5. Sets HERDR_CONFIG_PATH in both the current process and the Windows User environment scope.
+    6. Validates prerequisites (PowerShell 7, WezTerm, Herdr, Starship, Neovim, Git, ripgrep, fd, Hack Nerd Font).
 
     Idempotent and safe to re-run. Backs up existing files before replacing differing content.
 #>
@@ -223,6 +224,120 @@ function Set-PowerShellProfileBootstrap {
     }
 }
 
+function Set-CopilotBootstrap {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$RepoRoot,
+        [string]$HomeDirectory = $HOME,
+        [scriptblock]$NewSymbolicLink = {
+            param($Path, $Target)
+            New-Item -ItemType SymbolicLink -Path $Path -Target $Target -ErrorAction Stop
+        }
+    )
+
+    $resolvedRepo = [IO.Path]::GetFullPath($RepoRoot)
+    $copilotDir = Join-Path $HomeDirectory '.copilot'
+    if (-not (Test-Path -LiteralPath $copilotDir -PathType Container)) {
+        New-Item -ItemType Directory -Force -Path $copilotDir | Out-Null
+    }
+
+    $links = @(
+        @{
+            Path = Join-Path $copilotDir 'settings.json'
+            Target = [IO.Path]::GetFullPath((Join-Path $resolvedRepo 'shared/.copilot/settings.json'))
+        }
+        @{
+            Path = Join-Path $copilotDir 'copilot-instructions.md'
+            Target = [IO.Path]::GetFullPath((Join-Path $resolvedRepo 'shared/AGENTS.md'))
+        }
+    )
+    $linkResults = @()
+
+    foreach ($link in $links) {
+        $path = $link.Path
+        $target = $link.Target
+        $item = Get-Item -LiteralPath $path -Force -ErrorAction SilentlyContinue
+
+        if ($null -ne $item -and $item.LinkType -eq 'SymbolicLink' -and $item.Target) {
+            $existingTarget = [string]@($item.Target)[0]
+            if (-not [IO.Path]::IsPathRooted($existingTarget)) {
+                $existingTarget = Join-Path (Split-Path -Parent $path) $existingTarget
+            }
+            $existingTarget = [IO.Path]::GetFullPath($existingTarget)
+            $pathComparison = if ([IO.Path]::DirectorySeparatorChar -eq '\') {
+                [StringComparison]::OrdinalIgnoreCase
+            } else {
+                [StringComparison]::Ordinal
+            }
+
+            if ([string]::Equals($existingTarget, $target, $pathComparison)) {
+                $linkResults += [pscustomobject]@{
+                    Action = 'Unchanged'
+                    Path = $path
+                    Target = $target
+                    Message = "Copilot symlink already up to date: $path"
+                }
+                continue
+            }
+        }
+
+        $backup = $null
+        if ($null -ne $item) {
+            $backup = "$path.bak"
+            Move-Item -LiteralPath $path -Destination $backup -Force -ErrorAction Stop
+        }
+
+        try {
+            & $NewSymbolicLink $path $target | Out-Null
+            $action = if ($backup) { 'Updated' } else { 'Created' }
+            $message = if ($backup) {
+                "Copilot path backed up to $backup and linked: $path"
+            } else {
+                "Copilot symlink created: $path"
+            }
+            $linkResults += [pscustomobject]@{
+                Action = $action
+                Path = $path
+                Target = $target
+                Backup = $backup
+                Message = $message
+            }
+        }
+        catch {
+            $warning = "Could not create Copilot symlink at $path. Windows requires Developer Mode or an elevated PowerShell session to create symbolic links. Enable Developer Mode or run PowerShell as Administrator, then rerun the bootstrap. Error: $($_.Exception.Message)"
+            Write-Warning -Message $warning -WarningAction Continue
+            $linkResults += [pscustomobject]@{
+                Action = 'Failed'
+                Path = $path
+                Target = $target
+                Backup = $backup
+                Warning = $warning
+                Message = $warning
+            }
+        }
+    }
+
+    $action = if (@($linkResults | Where-Object Action -eq 'Failed').Count -gt 0) {
+        'Failed'
+    } elseif (@($linkResults | Where-Object Action -eq 'Updated').Count -gt 0) {
+        'Updated'
+    } elseif (@($linkResults | Where-Object Action -eq 'Created').Count -gt 0) {
+        'Created'
+    } else {
+        'Unchanged'
+    }
+    $warning = @($linkResults | Where-Object Action -eq 'Failed' | ForEach-Object Warning) -join ' '
+
+    return [pscustomobject]@{
+        Action = $action
+        Path = $copilotDir
+        Links = $linkResults
+        Warning = if ($warning) { $warning } else { $null }
+        Message = if ($warning) { $warning } else { "Copilot CLI links: $action ($copilotDir)" }
+    }
+}
+
 function Test-Prerequisites {
     [CmdletBinding()]
     param(
@@ -277,6 +392,10 @@ function Initialize-WindowsDotfiles {
             param($Name)
             Get-Command -Name $Name -ErrorAction SilentlyContinue
         },
+        [scriptblock]$NewSymbolicLink = {
+            param($Path, $Target)
+            New-Item -ItemType SymbolicLink -Path $Path -Target $Target -ErrorAction Stop
+        },
         [bool]$WindowsPlatform = ([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT)
     )
 
@@ -310,12 +429,17 @@ function Initialize-WindowsDotfiles {
     $profileResult = Set-PowerShellProfileBootstrap -RepoRoot $resolvedRepo -ProfilePath $ProfilePath
     Write-Output "    $($profileResult.Message)"
 
-    # 4. Herdr Config Path
+    # 4. Copilot CLI
+    $copilotResult = Set-CopilotBootstrap -RepoRoot $resolvedRepo -HomeDirectory $HomeDirectory `
+        -NewSymbolicLink $NewSymbolicLink
+    Write-Output "    $($copilotResult.Message)"
+
+    # 5. Herdr Config Path
     $herdrPath = Set-HerdrConfigPath -RepoRoot $resolvedRepo `
         -SetUserEnvironmentVariable $SetUserEnvironmentVariable `
         -WindowsPlatform $WindowsPlatform
 
-    # 5. Prerequisites check
+    # 6. Prerequisites check
     $prereqs = Test-Prerequisites -GetCommand $GetCommand
 
     Write-Output ""
@@ -323,6 +447,7 @@ function Initialize-WindowsDotfiles {
     Write-Output "    - WezTerm: $($weztermResult.Action) ($($weztermResult.Path))"
     Write-Output "    - Neovim: $($nvimResult.Action) ($($nvimResult.Path))"
     Write-Output "    - PowerShell `$PROFILE: $($profileResult.Action) ($($profileResult.Path))"
+    Write-Output "    - Copilot CLI: $($copilotResult.Action) ($($copilotResult.Path))"
     Write-Output "    - HERDR_CONFIG_PATH: Set to $herdrPath (Process and User scope)"
 
     Write-Output ""
@@ -343,6 +468,7 @@ function Initialize-WindowsDotfiles {
         WezTerm = $weztermResult
         Neovim = $nvimResult
         Profile = $profileResult
+        Copilot = $copilotResult
         HerdrConfigPath = $herdrPath
         Prerequisites = $prereqs
     }

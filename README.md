@@ -31,7 +31,7 @@ dotfiles/
 
 ### Directory Overview
 
-- **[`shared/`](shared/README.md)**: Application configurations that work identically across macOS, Linux, and Windows without OS branching. Includes Neovim (`shared/config/nvim`), WezTerm (`shared/config/wezterm`), Starship prompt (`shared/config/starship`), Pi agent configurations (`shared/.pi/agent`), and shared AI agent instructions (`shared/AGENTS.md`, `shared/CLAUDE.md`).
+- **[`shared/`](shared/README.md)**: Application configurations that work identically across macOS, Linux, and Windows without OS branching. Includes Neovim (`shared/config/nvim`), WezTerm (`shared/config/wezterm`), Starship prompt (`shared/config/starship`), Pi agent configurations (`shared/.pi/agent`), GitHub Copilot CLI settings (`shared/.copilot`), and shared AI agent instructions (`shared/AGENTS.md`, `shared/CLAUDE.md`).
 - **[`unix/`](unix/README.md)**: Declarative macOS workstation management using [nix-darwin](https://github.com/LnL7/nix-darwin) and [home-manager](https://github.com/nix-community/home-manager). Contains `flake.nix`, `configuration.nix`, `home.nix`, `bootstrap.sh`, `rebuild.sh`, and the macOS Herdr config (`unix/config/herdr/config.toml`).
 - **[`windows/`](windows/README.md)**: Windows workstation configuration for PowerShell 7 and terminal tools. Contains `bootstrap-windows.ps1` (an automated setup script), `windows/config/powershell/profile.ps1`, and the Windows Herdr config (`windows/config/herdr/config.toml`).
 
