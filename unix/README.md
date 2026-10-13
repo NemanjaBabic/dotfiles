@@ -109,7 +109,7 @@ On macOS/Unix, `unix/config/herdr/config.toml` intentionally omits `default_shel
 
 **Heads-up:**
 
-- `shared/AGENTS.md` is my personal agent policy, and `unix/home.nix` installs it for Claude, Codex, opencode, and Copilot CLI.
+- `shared/AGENTS.md` is my personal agent policy, and `unix/home.nix` installs it for Claude, Codex, and opencode, and links it to `~/.copilot/copilot-instructions.md`.
   If you clone this repo, you'd silently inherit my agent instructions - edit or delete `shared/AGENTS.md` if you don't want that.
 - The `cc` and `co` shell aliases in `unix/home.nix` are high-agency shortcuts: `claude --dangerously-skip-permissions` and `codex --full-auto`.
   They're convenient for me, but know what they do before you use them.

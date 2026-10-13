@@ -306,7 +306,7 @@ function Set-CopilotBootstrap {
         }
         catch {
             $warning = "Could not create Copilot symlink at $path. Windows requires Developer Mode or an elevated PowerShell session to create symbolic links. Enable Developer Mode or run PowerShell as Administrator, then rerun the bootstrap. Error: $($_.Exception.Message)"
-            Write-Warning $warning
+            Write-Warning -Message $warning -WarningAction Continue
             $linkResults += [pscustomobject]@{
                 Action = 'Failed'
                 Path = $path
@@ -327,12 +327,14 @@ function Set-CopilotBootstrap {
     } else {
         'Unchanged'
     }
+    $warning = @($linkResults | Where-Object Action -eq 'Failed' | ForEach-Object Warning) -join ' '
 
     return [pscustomobject]@{
         Action = $action
         Path = $copilotDir
         Links = $linkResults
-        Message = "Copilot CLI links: $action ($copilotDir)"
+        Warning = if ($warning) { $warning } else { $null }
+        Message = if ($warning) { $warning } else { "Copilot CLI links: $action ($copilotDir)" }
     }
 }
 

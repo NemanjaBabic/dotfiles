@@ -204,11 +204,27 @@ try {
 
     $failedCopilotHome = Join-Path $tempRoot 'failed_copilot_home'
     $failedCopilot = Set-CopilotBootstrap -RepoRoot $repoRoot -HomeDirectory $failedCopilotHome `
-        -NewSymbolicLink { param($Path, $Target) throw 'simulated privilege failure' }
+        -NewSymbolicLink { param($Path, $Target) throw 'simulated privilege failure' } `
+        -WarningAction Stop
     if ($failedCopilot.Action -cne 'Failed' -or
         @($failedCopilot.Links | Where-Object Action -eq 'Failed').Count -ne 2 -or
+        $failedCopilot.Message -notmatch 'Developer Mode or an elevated PowerShell session' -or
         $failedCopilot.Links[0].Warning -notmatch 'Developer Mode or an elevated PowerShell session') {
         throw 'Copilot symlink failures did not return actionable Developer Mode/elevation guidance.'
+    }
+
+    $initializeHome = Join-Path $tempRoot 'initialize_home'
+    New-Item -ItemType Directory -Force -Path $initializeHome | Out-Null
+    $initializeResult = Initialize-WindowsDotfiles -RepoRoot $repoRoot `
+        -HomeDirectory $initializeHome `
+        -LocalAppData (Join-Path $tempRoot 'initialize_localappdata') `
+        -ProfilePath (Join-Path $tempRoot 'initialize_profile/profile.ps1') `
+        -SetUserEnvironmentVariable { param($Name, $Value, $Target) } `
+        -GetCommand { param($Name) $null } `
+        -NewSymbolicLink { param($Path, $Target) throw 'simulated privilege failure' } `
+        -WindowsPlatform $true
+    if ($initializeResult.Copilot.Action -cne 'Failed') {
+        throw 'Initialize-WindowsDotfiles did not return the Copilot failure result.'
     }
 
     if ([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT) {
