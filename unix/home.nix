@@ -62,6 +62,8 @@ in
     config.lib.file.mkOutOfStoreSymlink "${dotfiles}/unix/config/herdr";
   home.file.".claude/settings.json".source =
     config.lib.file.mkOutOfStoreSymlink "${dotfiles}/shared/.claude/settings.json";
+  home.file.".copilot/settings.json".source =
+    config.lib.file.mkOutOfStoreSymlink "${dotfiles}/shared/.copilot/settings.json";
 
   # Keep Pi's credential and runtime state local by linking only authored files and directories.
   home.file.".pi/agent/themes".source =
@@ -74,6 +76,8 @@ in
     config.lib.file.mkOutOfStoreSymlink "${dotfiles}/shared/.pi/agent/settings.json";
 
   home.file.".claude/CLAUDE.md".source =
+    config.lib.file.mkOutOfStoreSymlink "${dotfiles}/shared/AGENTS.md";
+  home.file.".copilot/copilot-instructions.md".source =
     config.lib.file.mkOutOfStoreSymlink "${dotfiles}/shared/AGENTS.md";
   home.file.".codex/AGENTS.md".source =
     config.lib.file.mkOutOfStoreSymlink "${dotfiles}/shared/AGENTS.md";

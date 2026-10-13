@@ -1,4 +1,4 @@
-# Windows Setup (WezTerm, Starship, Neovim, and Herdr)
+# Windows Setup (WezTerm, Starship, Neovim, Copilot CLI, and Herdr)
 
 This guide starts with a fresh Windows machine using default settings, with no tools or dotfiles configured.
 Windows uses the shared application configs (`shared/`) and Windows-specific configs (`windows/`) directly, not the macOS Nix setup.
@@ -67,10 +67,11 @@ The script automatically:
 1. Creates `$HOME\.wezterm.lua` with `return dofile("<repo-root>/shared/config/wezterm/wezterm.lua")` (with forward slashes for Lua).
 2. Creates `$env:LOCALAPPDATA\nvim\init.lua` with `dofile("<repo-root>/shared/config/nvim/init.lua")`, including its parent directory.
 3. Creates `$PROFILE` and its directory, with a line dot-sourcing `<repo-root>\windows\config\powershell\profile.ps1`.
-4. Validates that `<repo-root>\windows\config\herdr\config.toml` exists, and sets `HERDR_CONFIG_PATH` for both the current process and the Windows User environment scope.
-5. Verifies prerequisite tools on `PATH` and reports missing dependencies.
+4. Creates `$HOME\.copilot` and symlinks `settings.json` and `copilot-instructions.md` to the shared Copilot settings and `shared\AGENTS.md`.
+5. Validates that `<repo-root>\windows\config\herdr\config.toml` exists, and sets `HERDR_CONFIG_PATH` for both the current process and the Windows User environment scope.
+6. Verifies prerequisite tools on `PATH` and reports missing dependencies.
 
-It is safe to re-run. As a safety net for existing personal configs, differing WezTerm and Neovim entry files are backed up to `.wezterm.lua.bak` and `init.lua.bak`; an existing profile is backed up to `$PROFILE.bak` before the dot-source line is appended, preserving unrelated content. A profile that directly initializes Starship is left unchanged with instructions for manual setup to avoid initializing the prompt twice.
+Creating Windows symbolic links requires Developer Mode or an elevated PowerShell session. If link creation fails, the bootstrap reports this requirement and continues. It is safe to re-run. As a safety net for existing personal configs, differing WezTerm, Neovim, and Copilot paths are backed up to `.wezterm.lua.bak`, `init.lua.bak`, or `<path>.bak`; an existing profile is backed up to `$PROFILE.bak` before the dot-source line is appended, preserving unrelated content. A profile that directly initializes Starship is left unchanged with instructions for manual setup to avoid initializing the prompt twice.
 
 After setup, close the setup shell and launch WezTerm and Herdr so their new PowerShell sessions load the profile and environment. Continue with [Verification](#verification).
 
@@ -147,7 +148,30 @@ Get-ExecutionPolicy -List
 
 Follow your machine's policy; do not bypass organization restrictions.
 
-### 4. Herdr
+### 4. Copilot CLI
+
+Creating symbolic links on Windows requires Developer Mode or an elevated PowerShell session. Enable Developer Mode in Windows Settings, or run PowerShell as Administrator. Create the config directory and link the tracked settings and shared global instructions (replace `<repo-root>` with your clone's absolute path):
+
+```powershell
+New-Item -ItemType Directory -Force -Path "$HOME\.copilot" | Out-Null
+New-Item -ItemType SymbolicLink -Path "$HOME\.copilot\settings.json" `
+    -Target "<repo-root>\shared\.copilot\settings.json"
+New-Item -ItemType SymbolicLink -Path "$HOME\.copilot\copilot-instructions.md" `
+    -Target "<repo-root>\shared\AGENTS.md"
+```
+
+If either destination already exists, back it up to `<path>.bak` before creating its symlink. Keep `config.json` local because it contains machine-specific state.
+
+Verify both links:
+
+```powershell
+Get-Item "$HOME\.copilot\settings.json" | Select-Object LinkType, Target
+Get-Item "$HOME\.copilot\copilot-instructions.md" | Select-Object LinkType, Target
+```
+
+Each `LinkType` should be `SymbolicLink`, and each `Target` should point into this clone.
+
+### 5. Herdr
 
 Herdr reads `windows\config\herdr\config.toml` directly from this clone; there is no AppData copy or TOML include.
 The config explicitly selects PowerShell 7 for new interactive panes:

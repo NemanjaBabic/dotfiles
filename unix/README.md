@@ -13,7 +13,7 @@ Running the switch builds:
 - Shell (zsh, aliases, starship prompt)
 - Editor (Neovim config with the rose-pine moon theme)
 - Terminal (WezTerm config with the rose-pine moon theme and dimmed unfocused windows)
-- Agent configs (Claude, Codex, opencode all share one `shared/AGENTS.md`)
+- Agent configs (Claude, Codex, opencode, and Copilot CLI all share one `shared/AGENTS.md`)
 - Optional Pi theme and local extensions, generic UI settings and model overrides, plus two deliberately pinned third-party Pi packages
 
 ## Prerequisites
@@ -109,7 +109,7 @@ On macOS/Unix, `unix/config/herdr/config.toml` intentionally omits `default_shel
 
 **Heads-up:**
 
-- `shared/AGENTS.md` is my personal agent policy, and `unix/home.nix` installs it for Claude, Codex, and opencode.
+- `shared/AGENTS.md` is my personal agent policy, and `unix/home.nix` installs it for Claude, Codex, opencode, and Copilot CLI.
   If you clone this repo, you'd silently inherit my agent instructions - edit or delete `shared/AGENTS.md` if you don't want that.
 - The `cc` and `co` shell aliases in `unix/home.nix` are high-agency shortcuts: `claude --dangerously-skip-permissions` and `codex --full-auto`.
   They're convenient for me, but know what they do before you use them.
