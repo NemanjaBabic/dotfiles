@@ -16,6 +16,7 @@ local git_dir = "C:\\Git"
 if is_windows then
 	config.default_prog = { "pwsh.exe", "-NoLogo" }
 	config.default_cwd = git_dir
+	config.front_end = "WebGpu"
 
 	config.keys = {
 		-- Open a new tab in C:\Git
